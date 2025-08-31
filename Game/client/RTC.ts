@@ -5,6 +5,7 @@ class RTC {
     private static _实例: RTC | null = null;
     public static get 实例() {
         return this._实例 ?? (this._实例 = new RTC());
+        
     }
 
     // @ts-ignore
