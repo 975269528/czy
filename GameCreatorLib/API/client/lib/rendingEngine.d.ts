@@ -1883,7 +1883,7 @@ declare class LocalStorage {
  * AssetManager.loadImage("asset/image/animation/2.png", Callback.New((tex: Texture) => {
  *      var g = new Graphics();
  *      // 取样从图中的256,256中取得128x128尺寸的切图，并显示在50,50的地方
- *      g.fillTexture(tex, 50, 50, 128, 128, "repeat", new Point(256, 256));
+ *      g.fillTexture(tex, 50, 50, 128, 128, "repeat", new Point(-256, -256));
  *      var sp = new Sprite();
  *      sp.graphics = g;
  *      stage.addChild(sp);

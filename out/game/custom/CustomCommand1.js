@@ -1,4 +1,4 @@
-;var CommandExecute;
+var CommandExecute;
 (function (CommandExecute) {
     function customCommand_1(commandPage, cmd, trigger, triggerPlayer, playerInput, p) {
         var _this_1 = this;

@@ -453,6 +453,54 @@ var ArrayUtils = (function () {
         }
         return arrayList;
     };
+    ArrayUtils.getTreeNodeArrayExitFolder = function (treeNode, childrenAttr, arrayList, checkIsOpen, isOpenAttr, ignoreChildrenCondition) {
+        if (childrenAttr === void 0) { childrenAttr = "children"; }
+        if (arrayList === void 0) { arrayList = null; }
+        if (checkIsOpen === void 0) { checkIsOpen = false; }
+        if (isOpenAttr === void 0) { isOpenAttr = "isOpen"; }
+        if (ignoreChildrenCondition === void 0) { ignoreChildrenCondition = null; }
+        if (!arrayList)
+            arrayList = [];
+        if (ignoreChildrenCondition && ignoreChildrenCondition.runWith([treeNode]))
+            return arrayList;
+        var children = treeNode[childrenAttr];
+        if (!children)
+            return arrayList;
+        var len = children.length;
+        for (var i = 0; i < len; i++) {
+            var node = children[i];
+            if (node.isDirectory) {
+                ArrayUtils.getTreeNodeArrayExitFolder(children[i], childrenAttr, arrayList, checkIsOpen, isOpenAttr, ignoreChildrenCondition);
+            }
+            else {
+                arrayList.push(node);
+            }
+        }
+        return arrayList;
+    };
+    ArrayUtils.getTreeNodeAndParentArray = function (treeNode, childrenAttr, arrayList, checkIsOpen, isOpenAttr, ignoreChildrenCondition) {
+        if (childrenAttr === void 0) { childrenAttr = "children"; }
+        if (arrayList === void 0) { arrayList = null; }
+        if (checkIsOpen === void 0) { checkIsOpen = false; }
+        if (isOpenAttr === void 0) { isOpenAttr = "isOpen"; }
+        if (ignoreChildrenCondition === void 0) { ignoreChildrenCondition = null; }
+        if (!arrayList)
+            arrayList = [];
+        if (ignoreChildrenCondition && ignoreChildrenCondition.runWith([treeNode]))
+            return arrayList;
+        var children = treeNode[childrenAttr];
+        if (!children)
+            return arrayList;
+        var len = children.length;
+        for (var i = 0; i < len; i++) {
+            var node = children[i];
+            arrayList.push({ node: node, parent: treeNode });
+            if (node.isDirectory) {
+                ArrayUtils.getTreeNodeAndParentArray(children[i], childrenAttr, arrayList, checkIsOpen, isOpenAttr, ignoreChildrenCondition);
+            }
+        }
+        return arrayList;
+    };
     return ArrayUtils;
 }());
 var Callback = (function () {
@@ -26180,6 +26228,13 @@ if (typeof define === 'function' && define.amd) {
                 this.onresize();
             }
             this._$5__enableMerageInAtlas = true;
+            for (var i = 0; i < os.clientSceneLayerImages.length; i++) {
+                let clientSceneLayerImageURL = os.clientSceneLayerImages[i];
+                 if (this._src && typeof this._src == "string" && clientSceneLayerImageURL && typeof clientSceneLayerImageURL == "string" && this._src.indexOf(clientSceneLayerImageURL) + clientSceneLayerImageURL.length == this._src.length) {
+                    this._$5__enableMerageInAtlas = false;
+                    break;
+                }
+            }
         }
         __class(WebGLImage, 'laya.webgl.resource.WebGLImage', _super);
         var __proto = WebGLImage.prototype;
@@ -43106,6 +43161,8 @@ if (typeof define === 'function' && define.amd) {
 // 初始化
 //------------------------------------------------------------------------------------------------------
 var os = {};
+// 修正场景图片层小图Shader有误的问题
+os.clientSceneLayerImages = [];
 /**
  * 系统初始化
  * @param w 宽度
@@ -44550,7 +44607,7 @@ var ZipManager = (function () {
     };
     return ZipManager;
 }());
-;if (typeof top === "undefined") {
+if (typeof top === "undefined") {
     top = this;
 }
 var mainDomain_gcide_common = _getAttributeFromParentPages('gcide_common');
@@ -46123,7 +46180,15 @@ var CustomCompData = (function () {
             return Game.player.variable.getVariable(MathUtils.int(v.value));
         else if (v.mode == 2)
             return ClientWorld.variable.getVariable(MathUtils.int(v.value));
-        else if (v.mode == 3) {
+        else if (v.mode == 3 && v.isIndex) {
+            var index = Game.player.variable.getVariable(MathUtils.int(v.value));
+            return Game.player.variable.getVariable(MathUtils.int(index));
+        }
+        else if (v.mode == 4 && v.isIndex) {
+            var index2 = Game.player.variable.getVariable(MathUtils.int(v.value));
+            return ClientWorld.variable.getVariable(MathUtils.int(index2));
+        }
+        else if ((v.mode == 3 && !v.isIndex) || v.mode == 5) {
             var value = CustomGameNumber["f" + MathUtils.int(v.value[0])](trigger, v.value[1]);
             return value;
         }
@@ -46140,7 +46205,15 @@ var CustomCompData = (function () {
             return Game.player.variable.getString(MathUtils.int(v.value));
         else if (v.mode == 2)
             return ClientWorld.variable.getString(MathUtils.int(v.value));
-        else if (v.mode == 3) {
+        else if (v.mode == 3 && v.isIndex) {
+            var index = Game.player.variable.getVariable(MathUtils.int(v.value));
+            return Game.player.variable.getString(MathUtils.int(index));
+        }
+        else if (v.mode == 4 && v.isIndex) {
+            var index2 = Game.player.variable.getVariable(MathUtils.int(v.value));
+            return ClientWorld.variable.getString(MathUtils.int(index2));
+        }
+        else if ((v.mode == 3 && !v.isIndex) || v.mode == 5) {
             var value = CustomGameString["f" + MathUtils.int(v.value[0])](trigger, v.value[1]);
             return value;
         }
@@ -46157,7 +46230,15 @@ var CustomCompData = (function () {
             return Game.player.variable.getSwitch(MathUtils.int(v.value)) ? true : false;
         else if (v.mode == 2)
             return ClientWorld.variable.getSwitch(MathUtils.int(v.value)) ? true : false;
-        else if (v.mode == 3) {
+        else if (v.mode == 3 && v.isIndex) {
+            var index = Game.player.variable.getVariable(MathUtils.int(v.value));
+            return Game.player.variable.getSwitch(MathUtils.int(index)) ? true : false;
+        }
+        else if (v.mode == 4 && v.isIndex) {
+            var index2 = Game.player.variable.getVariable(MathUtils.int(v.value));
+            return ClientWorld.variable.getSwitch(MathUtils.int(index2)) ? true : false;
+        }
+        else if ((v.mode == 3 && !v.isIndex) || v.mode == 5) {
             var value = CustomCondition["f" + MathUtils.int(v.value[0])](trigger, v.value[1]);
             return value ? true : false;
         }
@@ -46172,6 +46253,7 @@ var Scene = (function () {
         this.preloadSceneObjectAsset = true;
         this.preloadSceneCommandAsset = true;
         this.dataLayers = [];
+        this.TreeLayerMode = 0;
         this.sceneObjects = [];
         this.customCommandPages = [];
     }
@@ -48564,6 +48646,21 @@ var versionSouceData = (function () {
     }
     return versionSouceData;
 }());
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 var OriginalData = (function () {
     function OriginalData() {
     }
@@ -48574,6 +48671,13 @@ var TypeTreeNode = (function () {
     }
     return TypeTreeNode;
 }());
+var SceneLayerTreeNode = (function (_super) {
+    __extends(SceneLayerTreeNode, _super);
+    function SceneLayerTreeNode() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    return SceneLayerTreeNode;
+}(TypeTreeNode));
 
 
 
@@ -48637,6 +48741,7 @@ var SceneLayerData = (function (_super) {
         _this_1.tileData = [];
         _this_1.autoTileDataCache = [];
         _this_1.img = null;
+        _this_1.__folderVisible = true;
         _this_1.modeType = true;
         _this_1.modeLock = false;
         return _this_1;
@@ -52808,7 +52913,7 @@ var Config = (function () {
     Config.USE_FN = true;
     Config.saveAttrs = ["verManager", "startupPreloadFonts", "FONTS", "EDITOR_MAG_FILTER", "IMAGE_LAYER_DP_COORD_JS", "IMAGE_LAYER_DP_COORD_TS",
         "CREATED_GC_VERSION", "RELEASE_TEMPLATE_GC_VERSION", "gameSID", "gameProjectName", "gameVersion", "fragmentFileVersion", "GAME_MAG_FILTER", "templateVersionID",
-        "languages", "language", "GC_CLOUD_PLATFORM", "TEMPLETE_USER_UID", "AI_PAINTING_ID", "gridAlignMode", "z1", "quality"];
+        "languages", "language", "GC_CLOUD_PLATFORM", "TEMPLETE_USER_UID", "AI_PAINTING_ID", "gridAlignMode", "z1", "quality", "isgcdataEncrypted"];
     Config.ENGINE_MERGE_STARTUP_FILE = true;
     Config.compatibleOldProgram = true;
     Config.JSON_PATH = "asset/json";
@@ -52823,6 +52928,7 @@ var Config = (function () {
     Config.AI_PAINTING_ID = 1;
     Config.gridAlignMode = 0;
     Config.quality = 100;
+    Config.isgcdataEncrypted = true;
     return Config;
 }());
 var IdentityObject = (function () {
@@ -54944,23 +55050,33 @@ var AssetManager = (function () {
             var onLoadOneCB = Callback.New(onLoadOne, this);
             if (jsonObj.preloadMapAsset) {
                 var imgUrls = [];
+                os.clientSceneLayerImages = [];
                 for (var i = 0; i < jsonObj.LayerDatas.length; i++) {
                     var layerData = jsonObj.LayerDatas[i];
+                    var addTo_clientSceneLayerImages = (layerData.materialData && layerData.materialData[0] && layerData.materialData[0].materials.length > 0) || Config.EDIT_MODE;
                     if (!layerData.drawMode && layerData.img) {
                         imgUrls.push(layerData.img);
+                        if (addTo_clientSceneLayerImages)
+                            os.clientSceneLayerImages.push(layerData.img);
                     }
                     if (layerData.drawMode && layerData.tileTexIDs) {
                         for (var tileID in layerData.tileTexIDs) {
                             var tileIDInt = MathUtils.int(tileID);
                             if (tileIDInt < 0) {
                                 var autoTileData = Game.data.autoTileList.data[-tileIDInt];
-                                if (autoTileData && autoTileData.url)
+                                if (autoTileData && autoTileData.url) {
                                     imgUrls.push(autoTileData.url);
+                                    if (addTo_clientSceneLayerImages)
+                                        os.clientSceneLayerImages.push(autoTileData.url);
+                                }
                             }
                             else {
                                 var tileData = Game.data.tileList.data[tileIDInt];
-                                if (tileData && tileData.url)
+                                if (tileData && tileData.url) {
                                     imgUrls.push(tileData.url);
+                                    if (addTo_clientSceneLayerImages)
+                                        os.clientSceneLayerImages.push(tileData.url);
+                                }
                             }
                         }
                     }
@@ -56768,12 +56884,18 @@ var ClientScene = (function (_super) {
         this.layers.length = this.settingLayers.length = 0;
         if (!Config.EDIT_MODE)
             this.displayObject.hitArea = new Rectangle(-this.width, -this.height, this.width * 2, this.height * 2);
+        os.clientSceneLayerImages = [];
         for (var i = 0; i < this.LayerDatas.length; i++) {
             var layerData = this.LayerDatas[i];
             var layer = new ClientSceneLayer(this);
             if (!layerData.p) {
                 new SyncTask(ClientScene.TASK_INSTALL, function () { });
                 layer.install(layerData, Callback.New(SyncTask.taskOver, SyncTask, [ClientScene.TASK_INSTALL]));
+                if (!(layer.drawMode && layerData.tileData) && layerData.img) {
+                    if ((layer.materialData && layer.materialData[0] && layer.materialData[0].materials.length > 0) || Config.EDIT_MODE) {
+                        os.clientSceneLayerImages.push(layerData.img);
+                    }
+                }
             }
             this.addLayer(layer);
             this.settingLayers.push(layer);
@@ -58106,7 +58228,8 @@ var GameAudio = (function () {
         if (GameAudio.lastBgmSoundChannel) {
             if (isGradient) {
                 GameAudio.lastBgmTween = Tween.to(GameAudio.lastBgmSoundChannel, { volume: 0 }, gradientTime, null, Handler.create(this, function () {
-                    GameAudio.lastBgmSoundChannel.stop();
+                    if (GameAudio.lastBgmSoundChannel)
+                        GameAudio.lastBgmSoundChannel.stop();
                     GameAudio.lastBgmURL = null;
                     GameAudio.lastBgmSoundChannel = null;
                 }));
@@ -58166,7 +58289,8 @@ var GameAudio = (function () {
         if (GameAudio.lastBgsSoundChannel) {
             if (isGradient) {
                 GameAudio.lastBgsTween = Tween.to(GameAudio.lastBgsSoundChannel, { volume: 0 }, gradientTime, null, Handler.create(this, function () {
-                    GameAudio.lastBgsSoundChannel.stop();
+                    if (GameAudio.lastBgsSoundChannel)
+                        GameAudio.lastBgsSoundChannel.stop();
                     GameAudio.lastBgsURL = null;
                     GameAudio.lastBgsSoundChannel = null;
                 }));
@@ -58219,7 +58343,7 @@ var GameAudio = (function () {
         if (urlInfo.pitch != null)
             pitch = urlInfo.pitch;
         if (!url)
-            return;
+            return null;
         var channel = SoundManager.playSound(url, 1, pitch);
         if (!channel) {
             return null;
@@ -62024,6 +62148,9 @@ var ClientSceneLayer = (function (_super) {
         var _this_1 = this;
         if (this.drawMode)
             return;
+        var addTo_clientSceneLayerImages = (this.materialData && this.materialData[0] && this.materialData[0].materials.length > 0) || Config.EDIT_MODE;
+        if (addTo_clientSceneLayerImages)
+            os.clientSceneLayerImages.push(imgURL);
         this.mapUrl = imgURL;
         this.graphics.clear();
         if (this.bigImageRoot) {
@@ -63019,7 +63146,8 @@ var GCAnimation = (function (_super) {
             this.addChild(layer);
         else
             this.addChildAt(layer, toIndex);
-        layer.materialData = [{ materials: [] }];
+        if (!layer.materialData)
+            layer.materialData = [{ materials: [] }];
         layer.materialsDataExit = true;
         layer.installMaterialData(layer.materialData);
         layer.animation = this;
@@ -63424,8 +63552,10 @@ var AnimationLayer = (function (_super) {
         var nfmaterials = nf.materialData[0].materials;
         for (var i = 0; i < pfmaterials.length; i++) {
             var pmaterial = pfmaterials[i];
-            var material = {};
             var nmaterial = nfmaterials[i];
+            if (!pmaterial || !nmaterial)
+                continue;
+            var material = {};
             for (var key in pmaterial) {
                 if (typeof pmaterial[key] != "boolean" && typeof pmaterial[key] != "number" && typeof pmaterial[key] != "string")
                     continue;
@@ -63702,8 +63832,8 @@ var AnimationRefObjLayer = (function (_super) {
             frame.rotation = (nf.rotation - pf.rotation) * value + pf.rotation;
             frame.radius = (nf.radius - pf.radius) * value + pf.radius;
             frame.points = [];
-            for (var i_14 = 0; i_14 < pf.points.length; i_14++) {
-                frame.points.push((nf.points[i_14] - pf.points[i_14]) * value + pf.points[i_14]);
+            for (var i_15 = 0; i_15 < pf.points.length; i_15++) {
+                frame.points.push((nf.points[i_15] - pf.points[i_15]) * value + pf.points[i_15]);
             }
             if (pf.type == 3 || pf.type == 4)
                 frame.boundingBox = new Rectangle(getPointsXOrY(true), getPointsXOrY(false), getPointsWOrH(true), getPointsWOrH(false));
@@ -63776,17 +63906,17 @@ var AnimationRefObjLayer = (function (_super) {
                 points = [this.x, this.y, this.x + frameData.width, this.y, this.x + frameData.width, this.y + frameData.height, this.x, this.y + frameData.height];
                 break;
         }
-        for (var i_15 = 0; i_15 < points.length - 1; i_15 += 2) {
-            var point = new Point(points[i_15], points[i_15 + 1]);
-            points1[Math.floor(i_15 / 2)] = point;
+        for (var i_16 = 0; i_16 < points.length - 1; i_16 += 2) {
+            var point = new Point(points[i_16], points[i_16 + 1]);
+            points1[Math.floor(i_16 / 2)] = point;
         }
         var _this = this;
         var get = function (sp) {
             if (!sp || sp == _this.topAnimation)
                 return;
             else {
-                for (var i_16 = 0; i_16 < points1.length; i_16++)
-                    points1[i_16] = _this.transformPoint(points1[i_16], sp);
+                for (var i_17 = 0; i_17 < points1.length; i_17++)
+                    points1[i_17] = _this.transformPoint(points1[i_17], sp);
                 get(sp.parent);
             }
         };
@@ -64165,8 +64295,8 @@ var AnimationRefObjLayer = (function (_super) {
     };
     AnimationRefObjLayer.prototype.drawEllipse = function (x, y, radiusX, radiusY) {
         var points = [];
-        for (var i_17 = 0; i_17 <= 360; i_17++) {
-            var angle = (i_17 * Math.PI) / 180;
+        for (var i_18 = 0; i_18 <= 360; i_18++) {
+            var angle = (i_18 * Math.PI) / 180;
             var cx = x + radiusX * Math.cos(angle);
             var cy = y + radiusY * Math.sin(angle);
             points.push(cx);
@@ -70014,8 +70144,8 @@ getset(false, UIComponent.UIBase.prototype, 'visible', function () {
             this.videoTex.bitmap.reloadCanvasData();
             if (this.getMaterialPassLength() > 0) {
                 var materialPassages = this.getAllMaterialDatas();
-                for (var i_18 = 0; i_18 < materialPassages.length; i_18++) {
-                    var ms = materialPassages[i_18];
+                for (var i_19 = 0; i_19 < materialPassages.length; i_19++) {
+                    var ms = materialPassages[i_19];
                     if (ms.materials && ms.materials.length > 0) {
                         this.setMaterialDirty();
                         break;
@@ -70925,8 +71055,8 @@ var Avatar = (function (_super) {
                 }
                 this._body.x = -frame.width - frame.x;
                 if (this.currentFrameRefObjs) {
-                    var _loop_2 = function (i_19) {
-                        var helper = this_2.currentFrameRefObjs[i_19];
+                    var _loop_2 = function (i_20) {
+                        var helper = this_2.currentFrameRefObjs[i_20];
                         switch (helper.type) {
                             case 0:
                             case 2:
@@ -70946,11 +71076,11 @@ var Avatar = (function (_super) {
                                     helper.boundingBox.x = -helper.boundingBox.width - helper.boundingBox.x;
                                 break;
                         }
-                        this_2.currentFrameRefObjs[i_19] = helper;
+                        this_2.currentFrameRefObjs[i_20] = helper;
                     };
                     var this_2 = this;
-                    for (var i_19 in this.currentFrameRefObjs) {
-                        _loop_2(i_19);
+                    for (var i_20 in this.currentFrameRefObjs) {
+                        _loop_2(i_20);
                     }
                 }
             }
@@ -71119,12 +71249,12 @@ var Avatar = (function (_super) {
         }
     };
     Avatar.generateAllframeHelper = function (actionListArr, refObjs) {
-        for (var i_20 = 0; i_20 < actionListArr.length; i_20++) {
-            for (var j in actionListArr[i_20].frameImageInfo) {
-                var fra = actionListArr[i_20].frameImageInfo[j];
+        for (var i_21 = 0; i_21 < actionListArr.length; i_21++) {
+            for (var j in actionListArr[i_21].frameImageInfo) {
+                var fra = actionListArr[i_21].frameImageInfo[j];
                 for (var z = 0; z < fra.length; z++) {
                     if (!fra[z].frameHelper)
-                        fra[z].frameHelper = Avatar.generateframeHelper(actionListArr, refObjs, { i: i_20, j: j, z: z });
+                        fra[z].frameHelper = Avatar.generateframeHelper(actionListArr, refObjs, { i: i_21, j: j, z: z });
                 }
             }
         }
@@ -71612,15 +71742,14 @@ var GameDialog = (function (_super) {
         if (audio) {
             if (GameDialog.tschannel) {
                 GameAudio.stopTS(GameDialog.tschannel);
+                GameDialog.tschannel = null;
             }
             GameDialog.tschannel = GameAudio.playTS(audio);
             if (GameDialog.tschannel) {
                 GameDialog.tschannel.once(EventObject.COMPLETE, this, function (audio) {
-                    GameDialog.tschannel = null;
                     EventUtils.happen(GameDialog, GameDialog.EVENT_TS_PLAY_COMPLETE, [true, audio]);
                 }, [audio]);
                 GameDialog.tschannel.once(EventObject.ERROR, this, function (audio) {
-                    GameDialog.tschannel = null;
                     EventUtils.happen(GameDialog, GameDialog.EVENT_TS_PLAY_COMPLETE, [false, audio]);
                 }, [audio]);
             }
@@ -72252,8 +72381,8 @@ var GameDialog = (function (_super) {
             this.playText();
     };
     GameDialog.prototype.clearTextMaterials = function () {
-        for (var i_21 = 0; i_21 < this.playTextLabels.length; i_21++) {
-            this.playTextLabels[i_21].clearMaterials();
+        for (var i_22 = 0; i_22 < this.playTextLabels.length; i_22++) {
+            this.playTextLabels[i_22].clearMaterials();
         }
     };
     GameDialog.prototype.onSelfClick = function (e) {
@@ -76478,25 +76607,25 @@ AnimationLayer.typeClsMap[AnimationItemType.Image] = AnimationImageLayer;
             if (this.thisItemsOptimizationMode) {
                 if (dispose) {
                     var allItemUIArr = this.optimizationItemUI.concat(this.optimizationItemUIPool);
-                    for (var i_22 = 0; i_22 < allItemUIArr.length; i_22++) {
-                        var itemUI = allItemUIArr[i_22];
+                    for (var i_23 = 0; i_23 < allItemUIArr.length; i_23++) {
+                        var itemUI = allItemUIArr[i_23];
                         itemUI.dispose();
                     }
                     this.optimizationItemUIPool.length = this.optimizationItemUI.length = 0;
                 }
                 else {
-                    for (var i_23 = 0; i_23 < this.optimizationItemUI.length; i_23++) {
-                        var itemUI = this.optimizationItemUI[i_23];
+                    for (var i_24 = 0; i_24 < this.optimizationItemUI.length; i_24++) {
+                        var itemUI = this.optimizationItemUI[i_24];
                         this.freeOptimizationItemUI(itemUI);
                     }
                     this.optimizationItemUI.length = 0;
                 }
             }
             else {
-                for (var i_24 = 0; i_24 < this._contentArea.numChildren; i_24++) {
-                    var item = this._contentArea.getChildAt(i_24);
+                for (var i_25 = 0; i_25 < this._contentArea.numChildren; i_25++) {
+                    var item = this._contentArea.getChildAt(i_25);
                     item.dispose();
-                    i_24--;
+                    i_25--;
                 }
             }
         };
@@ -77002,19 +77131,19 @@ AnimationLayer.typeClsMap[AnimationItemType.Image] = AnimationImageLayer;
                     s++;
                 }
             }
-            for (var i_25 = 0; i_25 < this.optimizationItemUI.length; i_25++) {
-                var itemUI = this.optimizationItemUI[i_25];
+            for (var i_26 = 0; i_26 < this.optimizationItemUI.length; i_26++) {
+                var itemUI = this.optimizationItemUI[i_26];
                 if (!showOptimizationItemUIMap[itemUI.__listGlobalIndex]) {
                     this.freeOptimizationItemUI(itemUI);
-                    this.optimizationItemUI.splice(i_25, 1);
-                    i_25--;
+                    this.optimizationItemUI.splice(i_26, 1);
+                    i_26--;
                 }
                 else {
                     lastOptimizationItemUIMap[itemUI.__listGlobalIndex] = true;
                 }
             }
-            for (var i_26 = 0; i_26 < showOptimizationItemUIArr.length; i_26++) {
-                var o = showOptimizationItemUIArr[i_26];
+            for (var i_27 = 0; i_27 < showOptimizationItemUIArr.length; i_27++) {
+                var o = showOptimizationItemUIArr[i_27];
                 if (lastOptimizationItemUIMap[o.globalIndex]) {
                     continue;
                 }
@@ -77771,7 +77900,7 @@ var SinglePlayerGame = (function () {
                             }, _this_1));
                         }, _this_1));
                     }
-                }, this), false, false, false, Config.RELEASE_GAME);
+                }, this), false, false, false, Config.RELEASE_GAME && Config.isgcdataEncrypted);
             }
         };
         if (taskLock) {
@@ -78004,12 +78133,12 @@ var SinglePlayerGame = (function () {
                                             }, _this_1));
                                         }, _this_1));
                                     }, _this_1));
-                                }, _this_1), true, false, false, Config.RELEASE_GAME);
+                                }, _this_1), true, false, false, Config.RELEASE_GAME && Config.isgcdataEncrypted);
                             }
                             else {
                                 FileUtils.save(saveDataStr, gameFile, Callback.New(function (success, localURL) {
                                     saveGameFin.runWith([success]);
-                                }, _this_1), true, false, false, Config.RELEASE_GAME);
+                                }, _this_1), true, false, false, Config.RELEASE_GAME && Config.isgcdataEncrypted);
                             }
                         }, _this_1), globalData, false, false, true, saveLiftDataStr);
                     }, 0);
@@ -78402,13 +78531,11 @@ var SinglePlayerGame = (function () {
             return;
         var sceneData = Game.data.sceneList.data[Game.currentScene.id];
         var switchs = [];
-        for (var i = 0; i < sceneData.sceneObjectData.sceneObjects.length; i++) {
-            var soData = sceneData.sceneObjectData.sceneObjects[i];
-            if (!soData || soData.isBorn)
+        for (var i_11 = 0; i_11 < Game.currentScene.sceneObjects.length; i_11++) {
+            var so = Game.currentScene.sceneObjects[i_11];
+            if (!so || so == Game.player.sceneObject)
                 continue;
-            var so = Game.currentScene.sceneObjects[i];
-            if (so)
-                switchs[i] = so["switchs"];
+            switchs[i_11] = so["switchs"];
         }
         this.sceneDatas[Game.currentScene.id] = { sceneObjectSwitchs: switchs };
     };
@@ -78678,12 +78805,12 @@ var SinglePlayerGame = (function () {
         o.tonal = Game.currentScene.displayObject.getTonal();
         var layerLen = Game.currentScene.getLayerLength();
         var layerInfo = [];
-        for (var i_11 = 0; i_11 < layerLen; i_11++) {
-            var layer = Game.currentScene.getLayer(i_11);
+        for (var i_12 = 0; i_12 < layerLen; i_12++) {
+            var layer = Game.currentScene.getLayer(i_12);
             if (layer == Game.currentScene.displayObject) {
                 continue;
             }
-            layerInfo[i_11] = ClientSceneLayer.getSaveData(layer);
+            layerInfo[i_12] = ClientSceneLayer.getSaveData(layer);
         }
         o.layerInfo = layerInfo;
         return o;
@@ -78717,12 +78844,12 @@ var SinglePlayerGame = (function () {
                 isAllSameLayer = false;
             }
             else {
-                for (var i_12 = 0; i_12 < layerLen; i_12++) {
-                    var layer = Game.currentScene.getLayer(i_12);
+                for (var i_13 = 0; i_13 < layerLen; i_13++) {
+                    var layer = Game.currentScene.getLayer(i_13);
                     if (layer == Game.currentScene.displayObject) {
                         continue;
                     }
-                    var rLayer = layerInfo[i_12];
+                    var rLayer = layerInfo[i_13];
                     if (!rLayer || layer.drawMode != rLayer.drawMode) {
                         isAllSameLayer = false;
                         break;
@@ -78730,12 +78857,12 @@ var SinglePlayerGame = (function () {
                 }
             }
             if (isAllSameLayer) {
-                for (var i_13 = 0; i_13 < layerLen; i_13++) {
-                    var layer = Game.currentScene.getLayer(i_13);
+                for (var i_14 = 0; i_14 < layerLen; i_14++) {
+                    var layer = Game.currentScene.getLayer(i_14);
                     if (layer == Game.currentScene.displayObject) {
                         continue;
                     }
-                    ClientSceneLayer.recoverySaveData(layer, layerInfo[i_13]);
+                    ClientSceneLayer.recoverySaveData(layer, layerInfo[i_14]);
                 }
             }
         }

@@ -18,6 +18,8 @@
         "referencesAutoManage": false
     },
     "files": [
+        "client/MessagePacket.ts",
+        "client/RTC.ts",
         "game/custom/CustomCommand1.ts",
         "game/custom/CustomCommand2.ts",
         "game/custom/CustomCondition.ts",
